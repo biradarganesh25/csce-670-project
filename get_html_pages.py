@@ -3,7 +3,6 @@ import requests
 import urllib3
 import ssl
 
-
 class CustomHttpAdapter (requests.adapters.HTTPAdapter):
     # "Transport adapter" that allows us to use custom ssl_context.
 
@@ -24,13 +23,19 @@ def get_legacy_session():
     session.mount('https://', CustomHttpAdapter(ctx))
     return session
 
-def extract_text_from(url):
-    html = requests.get(url).text
-    soup = BeautifulSoup(html, features="html.parser")
-    text = soup.get_text()
+def extract_text_from(link_file):
+    with open(link_file, 'r') as f:
+        urls = f.readlines()
+    for i, url in enumerate(urls):
+        url = url.strip()
+        html = get_legacy_session().get(url).text
+        soup = BeautifulSoup(html, features="html.parser")
+        text = soup.get_text()
 
-    lines = (line.strip() for line in text.splitlines())
-    return '\n'.join(line for line in lines if line)
+        lines = (line.strip() for line in text.splitlines())
+        with open (f'{i}.txt', 'w') as f:
+            f.write('\n'.join(line for line in lines if line))
+    # return '\n'.join(line for line in lines if line)
 
 #write a function that accepts a url and returns a list of all urls under that url
 def get_all_links(url, level):
@@ -56,4 +61,5 @@ def write_links_to_file():
         for link in links_to_scrape:
             f.write(link+'\n')
 
-write_links_to_file()
+# write_links_to_file()
+extract_text_from('links.txt')
