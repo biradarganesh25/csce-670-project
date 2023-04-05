@@ -6,6 +6,7 @@ from langchain.vectorstores import FAISS
 from langchain.embeddings import OpenAIEmbeddings
 import pickle
 
+
 def build_text_and_sources(txt_files):
 	text = []
 	sources = []
@@ -40,3 +41,6 @@ print(len(metadatas))
 store = FAISS.from_texts(docs, OpenAIEmbeddings(), metadatas=metadatas)
 with open("faiss_store.pkl", "wb") as f:
     pickle.dump(store, f)
+    
+# print("Documents:{}\n".format(docs[0]))
+# print("metadata_files:{}\n".format(metadatas[0]))
