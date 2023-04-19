@@ -30,10 +30,9 @@ def extract_text_from(link_file):
         url = url.strip()
         html = get_legacy_session().get(url).text
         soup = BeautifulSoup(html, features="html.parser")
-        text = soup.get_text()
-
+        text = soup.find_all("main")[0].get_text()
         lines = (line.strip() for line in text.splitlines())
-        with open (f'{i}.txt', 'w') as f:
+        with open (f'./data/{i}.txt', 'w') as f:
             f.write('\n'.join(line for line in lines if line))
     # return '\n'.join(line for line in lines if line)
 
