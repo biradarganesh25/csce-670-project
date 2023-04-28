@@ -37,6 +37,7 @@ class DataExtractor:
             return []
         html = self.get_legacy_session().get(self.parent_website_url).text
         soup = BeautifulSoup(html, features="html.parser")
+
         links = []
         for link in soup.find_all('a'):
             actual_link = link.get('href')
@@ -64,7 +65,7 @@ class DataExtractor:
             soup = BeautifulSoup(html, features="html.parser")
             text = soup.find_all("main")[0].get_text()
             lines = (line.strip() for line in text.splitlines())
-            with open (f'./data/{i}a.txt', 'w') as f:
+            with open (f'./data/{i}.txt', 'w') as f:
                 f.write('\n'.join(line for line in lines if line))
 
 if __name__ == "__main__":
