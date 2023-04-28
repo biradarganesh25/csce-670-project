@@ -15,51 +15,63 @@ class CustomHttpAdapter (requests.adapters.HTTPAdapter):
             num_pools=connections, maxsize=maxsize,
             block=block, ssl_context=self.ssl_context)
 
-def get_legacy_session():
-    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
-    session = requests.session()
-    session.verify = "./crts"
-    session.mount('https://', CustomHttpAdapter(ctx))
-    return session
+class DataExtractor:
 
-def extract_text_from(link_file):
-    with open(link_file, 'r') as f:
-        urls = f.readlines()
-    for i, url in enumerate(urls):
-        url = url.strip()
-        html = get_legacy_session().get(url).text
+    def __init__(self,url,links_filename):
+        self.parent_website_url = url
+        self.links_filename = links_filename
+
+
+    def get_legacy_session(self):
+        ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+        session = requests.session()
+        session.verify = "./crts"
+        session.mount('https://', CustomHttpAdapter(ctx))
+        return session
+
+    #Function to return a list of all urls under a parent url
+    def get_all_links_from_url(self, level):
+        print("Extracting all urls under {}".format(self.parent_website_url))
+        if level == 2:
+            return []
+        html = self.get_legacy_session().get(self.parent_website_url).text
         soup = BeautifulSoup(html, features="html.parser")
-        text = soup.get_text()
+        links = []
+        for link in soup.find_all('a'):
+            actual_link = link.get('href')
+            #identify if the link is a relative link
+            if actual_link and actual_link[0] == '/':
+                print(actual_link)
+                actual_link = self.parent_website_url + actual_link[1:]            
+                links.append(actual_link)
+        return set(links)
 
-        lines = (line.strip() for line in text.splitlines())
-        with open (f'{i}.txt', 'w') as f:
-            f.write('\n'.join(line for line in lines if line))
-    # return '\n'.join(line for line in lines if line)
+    #Function to write extracted links to a file
+    def write_links_to_file(self):
+        links_to_scrape = self.get_all_links_from_url(0)
+        with open(self.links_filename, 'w') as f:
+            for link in links_to_scrape:
+                f.write(link+'\n')
 
-#write a function that accepts a url and returns a list of all urls under that url
-def get_all_links(url, level):
-    print("current url: ************", url)
-    if level == 2:
-        return []
-    html = get_legacy_session().get(url).text
-    soup = BeautifulSoup(html, features="html.parser")
-    links = []
-    for link in soup.find_all('a'):
-        actual_link = link.get('href')
-        #identify if the link is a relative link
-        if actual_link and actual_link[0] == '/':
-            print(actual_link)
-            actual_link = url + actual_link[1:]            
-            links.append(actual_link)
-            # links.extend(get_all_links(actual_link, level+1))
-    return set(links)
+    # Extract text from each link and write it to *.txt files. 
+    def extract_text_from_links(self):
+        with open(self.links_filename, 'r') as f:
+            urls = f.readlines()
+        for i, url in enumerate(urls):
+            url = url.strip()
+            html = self.get_legacy_session().get(url).text
+            soup = BeautifulSoup(html, features="html.parser")
+            text = soup.find_all("main")[0].get_text()
+            lines = (line.strip() for line in text.splitlines())
+            with open (f'./data/{i}a.txt', 'w') as f:
+                f.write('\n'.join(line for line in lines if line))
 
-def write_links_to_file():
-    links_to_scrape = get_all_links('https://iss.tamu.edu/', 0)
-    with open('links.txt', 'w') as f:
-        for link in links_to_scrape:
-            f.write(link+'\n')
+if __name__ == "__main__":
 
-# write_links_to_file()
-extract_text_from('links.txt')
+    PARENT_WEBSITE_URL = "https://iss.tamu.edu/"
+    LINKS_FILE = "links.txt"
+
+    data_extractor = DataExtractor(PARENT_WEBSITE_URL,LINKS_FILE)
+    data_extractor.write_links_to_file()
+    data_extractor.extract_text_from_links()
