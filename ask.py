@@ -74,7 +74,8 @@ def ask(query):
     return response_message
 
 def conversation_history(input, history):
-    history = history or []
+    # history = history or []
+    history = []
     s = list(sum(history, ()))
     s.append(input)
     inp = ''.join(s)
