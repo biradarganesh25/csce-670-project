@@ -86,12 +86,10 @@ blocks = gr.Blocks()
 prompt = "Hi I am Contextify! \n Ask anything about ISSS!!"
 
 with blocks:
-    chatbot = gr.Chatbot()
+    chatbot = gr.Chatbot(visible=False)
     message = gr.Textbox(placeholder=prompt)
     state = gr.State()
     submit = gr.Button("Send")
     submit.click(conversation_history, inputs=[message, state], outputs=[chatbot, state])
-    clear = gr.Button("Clear")
-    # clear.click()
 
 blocks.launch(debug=True)
