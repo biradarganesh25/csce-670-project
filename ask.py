@@ -1,6 +1,5 @@
 import os
 import pickle
-
 import common_data
 import faiss
 import gradio as gr
@@ -19,7 +18,6 @@ with open("docs.pkl", "rb") as f:
 # load metadatas.pkl list of metadata
 with open("metadatas.pkl", "rb") as f:
     metadatas = pickle.load(f)
-
 
 def get_similar_docs(query):
     # query = "what are tamu iss advising zoom meeting hours?"
@@ -46,7 +44,6 @@ def get_similar_docs(query):
 
     return [docs[i] for i in indices[0]], [metadatas[i] for i in indices[0]]
 
-
 def build_prompt(query, docs):
     introduction = "Use the below paragraphs to answer the following question. If you are not sure about the answer, say 'I don't know', don't try to guess.\n"
     question = f"\n\nQuestion: {query}"
@@ -56,7 +53,6 @@ def build_prompt(query, docs):
     prompt += question
     print("using prompt: ", prompt)
     return prompt
-
 
 def ask(query):
     docs, metadats = get_similar_docs(query)
@@ -86,10 +82,9 @@ def conversation_history(input, history):
     history.append((input, output))
     return output, history
 
-
-
 blocks = gr.Blocks()
 prompt = "Hi I am Contextify! \n Ask anything about ISSS!!"
+
 with blocks:
     chatbot = gr.Chatbot()
     message = gr.Textbox(placeholder=prompt)
@@ -98,4 +93,5 @@ with blocks:
     submit.click(conversation_history, inputs=[message, state], outputs=[chatbot, state])
     clear = gr.Button("Clear")
     # clear.click()
+
 blocks.launch(debug=True)
