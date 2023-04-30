@@ -80,16 +80,14 @@ def conversation_history(input, history):
     inp = ''.join(s)
     output = ask(inp)
     history.append((input, output))
-    return output, history
+    return history, history
 
 blocks = gr.Blocks()
 prompt = "Hi I am Contextify! \n Ask anything about ISSS!!"
-
 with blocks:
-    chatbot = gr.Chatbot(visible=False)
+    chatbot = gr.Chatbot()
     message = gr.Textbox(placeholder=prompt)
     state = gr.State()
     submit = gr.Button("Send")
     submit.click(conversation_history, inputs=[message, state], outputs=[chatbot, state])
-
 blocks.launch(debug=True)
