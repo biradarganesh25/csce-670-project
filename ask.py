@@ -1,15 +1,17 @@
-from langchain.vectorstores.faiss import FAISS
-import pickle
-import faiss
-import openai
 import os
-import tiktoken 
+import pickle
+
 import common_data
+import faiss
+import gradio as gr
 import numpy as np
+import openai
+import tiktoken
+from langchain.vectorstores.faiss import FAISS
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-#load faiss index
+# load faiss index
 index = faiss.read_index("faiss_store.pkl")
 # load docs.pkl list of documents
 with open("docs.pkl", "rb") as f:
@@ -18,7 +20,8 @@ with open("docs.pkl", "rb") as f:
 with open("metadatas.pkl", "rb") as f:
     metadatas = pickle.load(f)
 
-def get_similar_docs(query): 
+
+def get_similar_docs(query):
     # query = "what are tamu iss advising zoom meeting hours?"
 
     EMBEDDING_MODEL = common_data.EMBEDDING_MODEL
@@ -31,10 +34,10 @@ def get_similar_docs(query):
         input=query,
     )
     query_embedding = np.array(query_embedding_response["data"][0]["embedding"])
-    #normalize query embedding
+    # normalize query embedding
     query_embedding_normalized = query_embedding / np.linalg.norm(query_embedding)
 
-    distance, indices = index.search(query_embedding_normalized.reshape(1,-1), 2)
+    distance, indices = index.search(query_embedding_normalized.reshape(1, -1), 2)
     print("similar docs:")
     for i in indices[0]:
         print(docs[i])
@@ -42,7 +45,8 @@ def get_similar_docs(query):
         print("#########################")
 
     return [docs[i] for i in indices[0]], [metadatas[i] for i in indices[0]]
-    
+
+
 def build_prompt(query, docs):
     introduction = "Use the below paragraphs to answer the following question. If you are not sure about the answer, say 'I don't know', don't try to guess.\n"
     question = f"\n\nQuestion: {query}"
@@ -52,6 +56,7 @@ def build_prompt(query, docs):
     prompt += question
     print("using prompt: ", prompt)
     return prompt
+
 
 def ask(query):
     docs, metadats = get_similar_docs(query)
@@ -72,4 +77,25 @@ def ask(query):
     response_message = response["choices"][0]["message"]["content"]
     return response_message
 
-print(ask("what is the current covid guidelines issued by the iss?"))
+def conversation_history(input, history):
+    history = history or []
+    s = list(sum(history, ()))
+    s.append(input)
+    inp = ''.join(s)
+    output = ask(inp)
+    history.append((input, output))
+    return output, history
+
+
+
+blocks = gr.Blocks()
+prompt = "Hi I am Contextify! \n Ask anything about ISSS!!"
+with blocks:
+    chatbot = gr.Chatbot()
+    message = gr.Textbox(placeholder=prompt)
+    state = gr.State()
+    submit = gr.Button("Send")
+    submit.click(conversation_history, inputs=[message, state], outputs=[chatbot, state])
+    clear = gr.Button("Clear")
+    clear.click()
+blocks.launch(debug=True)
