@@ -97,5 +97,5 @@ with blocks:
     submit = gr.Button("Send")
     submit.click(conversation_history, inputs=[message, state], outputs=[chatbot, state])
     clear = gr.Button("Clear")
-    clear.click()
+    # clear.click()
 blocks.launch(debug=True)
