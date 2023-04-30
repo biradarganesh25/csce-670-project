@@ -45,7 +45,8 @@ def get_similar_docs(query):
     return [docs[i] for i in indices[0]], [metadatas[i] for i in indices[0]]
 
 def build_prompt(query, docs):
-    introduction = "Use the below paragraphs to answer the following question. If you are not sure about the answer, say 'I don't know', don't try to guess.\n"
+    # introduction = "Use the below paragraphs to answer the following question. If you are not sure about the answer, say 'I don't know', don't try to guess.\n"
+    introduction = "Use the below paragraphs to answer the following question. w'\n"
     question = f"\n\nQuestion: {query}"
     prompt = introduction
     for doc in docs:
